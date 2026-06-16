@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrustEarn Network Pro</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://sad.adsgram.ai/js/adsgram-telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
+    <style>
+        :root {
+            --bg-color: #0b1216;
+            --card-bg: #111a24;
+            --neon-glow: #00ffcc;
+            --text-main: #ffffff;
+            --text-muted: #7c8394;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding: 15px; padding-bottom: 95px; overflow-x: hidden; }
+        
+        /* Smooth Screen Transitions */
+        .screen { display: none; animation: fadeIn 0.4s ease-in-out; }
+        .active-screen { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Main Top Header Display */
+        .header-card { text-align: center; background: #0c161f; padding: 30px 20px; border-radius: 24px; border: 2px solid #162736; box-shadow: 0 0 25px rgba(0, 255, 204, 0.15); margin-bottom: 15px; }
+        
+        /* Premium CSS Typography Logo */
+        .text-logo-box {
+            background: radial-gradient(circle, #162736 0%, #080f14 100%);
+            border: 2px solid var(--neon-glow);
+            border-radius: 20px;
+            padding: 15px 25px;
+            display: inline-block;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.2);
+        }
+        .text-logo-main {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #ffffff 40%, var(--neon-glow) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .text-logo-sub { font-size: 11px; font-weight: 700; color: #f1c40f; letter-spacing: 4px; text-transform: uppercase; margin-top: 2px; }
+        #user-name { font-size: 19px; font-weight: bold; color: #fff; margin-bottom: 5px; }
+
+        /* Balance Display Card */
+        .info-box { background: var(--card-bg); border-radius: 20px; border: 1px solid #1c2d3d; padding: 20px; margin-bottom: 15px; }
+        .box-title { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+        
+        .balance-row { display: flex; align-items: center; gap: 12px; margin-top: 5px; }
+        .token-icon { width: 35px; height: 35px; background: #0c161f; border: 2px solid var(--neon-glow); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; color: var(--neon-glow); font-size: 16px; }
+        .balance-amount { font-size: 32px; font-weight: 800; color: #fff; }
+        .token-symbol { color: #fff; font-size: 28px; font-weight: 400; margin-left: 5px; }
+
+        /* Total Fund Row Style */
+        .fund-row { display: flex; justify-content: space-between; align-items: center; margin-top: 5px; }
+        .fund-counter { font-size: 20px; font-weight: bold; color: var(--neon-glow); }
+
+        /* Live Dynamic Notification Box */
+        .noti-box { background: #1a1518; border: 1px solid #3d1c24; padding: 15px; border-radius: 20px; margin-bottom: 15px; }
+        .noti-header { display: flex; align-items: center; gap: 8px; color: #ff4757; font-weight: bold; font-size: 15px; margin-bottom: 8px; }
+        .noti-dot { width: 10px; height: 10px; background: #ff4757; border-radius: 50%; animation: pulse 1.5s infinite; }
+        .noti-text { font-size: 14px; color: #ced6e0; }
+        @keyframes pulse { 0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; } }
+
+        /* Task Module List Styles */
+        .task-card { background: var(--card-bg); padding: 18px; border-radius: 20px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #1c2d3d; }
+        .task-info h4 { font-size: 15px; font-weight: 600; color: #fff; margin-bottom: 4px; }
+        .task-info p { font-size: 13px; color: var(--neon-glow); font-weight: 700; }
+        .task-btn { background: #162736; color: var(--neon-glow); border: 1px solid var(--neon-glow); padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 14px; cursor: pointer; }
+
+        /* Panel Content Containers */
+        .panel-box { background: var(--card-bg); padding: 20px; border-radius: 20px; border: 1px solid #1c2d3d; text-align: center; }
+        .copy-input { width: 100%; background: #0b1216; border: 1px solid #1c2d3d; color: #fff; padding: 12px; border-radius: 12px; text-align: center; font-size: 14px; margin: 15px 0; }
+
+        /* Fixed Floating Bottom Bar */
+        .nav-bar { position: fixed; bottom: 15px; left: 0; width: 100%; display: flex; justify-content: space-around; padding: 10px 15px; z-index: 1000; }
+        .nav-container { width: 100%; background: rgba(17, 26, 36, 0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; padding: 12px 0; border-radius: 24px; border: 1px solid #1c2d3d; }
+        .nav-item { color: var(--text-muted); text-decoration: none; display: flex; flex-direction: column; align-items: center; font-size: 12px; width: 20%; cursor: pointer; }
+        .nav-item.active { color: var(--neon-glow); }
+        .nav-item span:first-child { font-size: 20px; margin-bottom: 4px; }
+    </style>
+</head>
+<body>
+
+    <div id="home-screen" class="screen active-screen">
+        <div class="header-card">
+            <div class="text-logo-box">
+                <div class="text-logo-main">TrustEarn</div>
+                <div class="text-logo-sub">Network</div>
+            </div>
+            <h3 id="user-name">Hello, Premium User 👋</h3>
+        </div>
+        <div class="info-box">
+            <p class="box-title">Available Tokens</p>
+            <div class="balance-row">
+                <div class="token-icon">T</div>
+                <div class="balance-amount" id="main-balance">0</div>
+                <div class="token-symbol">$TECN Token</div>
+            </div>
+        </div>
+        <div class="info-box">
+            <div class="fund-row">
+                <span class="fund-title">Total Fund Collected</span>
+                <span class="fund-counter" id="total-fund">0 $TECN</span>
+            </div>
+        </div>
+        <div class="noti-box" id="notification-area" style="display: none;">
+            <div class="noti-header"><div class="noti-dot"></div><span>Live Notifications</span></div>
+            <div class="noti-text" id="admin-notice-text">Welcome to TrustEarn Network...</div>
+        </div>
+    </div>
+
+    <div id="tasks-screen" class="screen">
+        <div class="info-box" style="margin-top: 10px;">
+            <h2>🎯 Tasks Dashboard</h2>
+            <p style="color: var(--text-muted); font-size: 13px;">Complete campaigns and watch ads to claim rewards instantly.</p>
+        </div>
+        <div id="app-task-list">
+            </div>
+    </div>
+
+    <div id="friends-screen" class="screen">
+        <div class="info-box" style="margin-top: 10px;">
+            <h2>👥 Invite Friends</h2>
+            <p style="color: var(--text-muted); font-size: 14px;">Earn +500 $TECN for every successful referral.</p>
+        </div>
+        <div class="panel-box">
+            <p style="font-size: 12px; color: var(--text-muted);">YOUR PERSONAL INVITE LINK</p>
+            <input type="text" id="ref-link" readonly class="copy-input">
+            <button class="task-btn" style="width: 100%; background: var(--neon-glow); color: #000;" onclick="copyRef()">Copy Link</button>
+        </div>
+    </div>
+
+    <div id="wallet-screen" class="screen">
+        <div class="info-box" style="margin-top: 10px;">
+            <h2>🏦 Wallet System</h2>
+            <p style="color: var(--text-muted); font-size: 14px;">Submit your address during the withdrawal period.</p>
+        </div>
+        <div class="panel-box" id="wallet-interface-box" style="padding: 30px 20px;">
+            <p style="color: var(--text-muted);">Loading system configuration...</p>
+        </div>
+    </div>
+
+    <div class="nav-bar">
+        <div class="nav-container">
+            <div class="nav-item active" onclick="switchTab('home-screen', this)"><span>🏠</span><span>Home</span></div>
+            <div class="nav-item" onclick="switchTab('tasks-screen', this)"><span>📋</span><span>Tasks</span></div>
+            <div class="nav-item" onclick="switchTab('friends-screen', this)"><span>👥</span><span>Friends</span></div>
+            <div class="nav-item" onclick="switchTab('wallet-screen', this)"><span>💼</span><span>Wallet</span></div>
+        </div>
+    </div>
+
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        const telegramUser = tg.initDataUnsafe?.user;
+        const userId = telegramUser ? telegramUser.id : "dev_user_777";
+        const userName = telegramUser ? telegramUser.first_name : "Premium User";
+
+        document.getElementById('user-name').innerText = `Hello, ${userName} 👋`;
+        document.getElementById('ref-link').value = `https://t.me/trustearn_bot?start=${userId}`;
+
+        // Firebase Node Settings
+        const firebaseConfig = {
+            apiKey: "AIzaSyBGTffQC-nW3_z8vU1nW7wwIye58d-ICgs",
+            authDomain: "trustearn-network.firebaseapp.com",
+            projectId: "trustearn-network",
+            storageBucket: "trustearn-network.firebasestorage.app",
+            messagingSenderId: "653539435828",
+            appId: "1:653539435828:web:efd2e9fd0a1753c376f161"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        // Adsgram Integration Protocol (Use your own Block ID when approved)
+        // '3405' is the official test block ID provided by Adsgram for developers
+        const AdController = window.Adsgram.init({ blockId: "3405" }); 
+
+        // Sync Balance
+        database.ref('users/' + userId).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if(data) {
+                document.getElementById('main-balance').innerText = Number(data.balance).toLocaleString();
+                renderWalletTab(data.wallet_address);
+            } else {
+                database.ref('users/' + userId).set({ name: userName, balance: 1000 });
+            }
+        });
+
+        // Global Settings Realtime Sync
+        let serverWalletStatus = 'closed';
+        database.ref('system_settings').on('value', (snapshot) => {
+            const settings = snapshot.val();
+            if(settings) {
+                if(settings.notice && settings.notice.trim() !== "") {
+                    document.getElementById('notification-area').style.display = "block";
+                    document.getElementById('admin-notice-text').innerText = settings.notice;
+                } else {
+                    document.getElementById('notification-area').style.display = "none";
+                }
+                if(settings.total_fund) document.getElementById('total-fund').innerText = Number(settings.total_fund).toLocaleString() + " $TECN";
+                
+                serverWalletStatus = settings.wallet_status || 'closed';
+                database.ref('users/' + userId + '/wallet_address').once('value', (snap) => {
+                    renderWalletTab(snap.val());
+                });
+            }
+        });
+
+        // Render Active Tasks and Inject Live Telegram Adsgram Card
+        database.ref('tasks').on('value', (snapshot) => {
+            const tasks = snapshot.val();
+            const taskContainer = document.getElementById('app-task-list');
+            taskContainer.innerHTML = "";
+
+            // 👑 LIVE TELEGRAM REWARDED AD CARD (Always Pin to Top)
+            taskContainer.innerHTML += `
+                <div class="task-card" style="border: 1px solid #f1c40f; background: linear-gradient(135deg, #111a24 0%, #1c1811 100%);">
+                    <div class="task-info">
+                        <h4 style="color: #f1c40f;">📺 Watch Telegram Native Ad</h4>
+                        <p>+250 $TECN (Instant Reward)</p>
+                    </div>
+                    <button class="task-btn" style="background: #f1c40f; color: #000; border-color: #f1c40f; font-weight:bold;" onclick="showTelegramAd()">Watch</button>
+                </div>
+            `;
+
+            if(tasks) {
+                for(let id in tasks) {
+                    if(tasks[id].status === 'active') {
+                        taskContainer.innerHTML += `
+                            <div class="task-card">
+                                <div class="task-info"><h4>${tasks[id].title}</h4><p>+${tasks[id].reward} $TECN</p></div>
+                                <button class="task-btn" onclick="completeTask('${id}', '${tasks[id].link}', ${tasks[id].reward})">Go</button>
+                            </div>
+                        `;
+                    }
+                }
+            }
+        });
+
+        // Adsgram Trigger Engine
+        function showTelegramAd() {
+            AdController.show().then((result) => {
+                // User finished watching the advertisement fully
+                const userBalanceRef = database.ref(`users/${userId}/balance`);
+                userBalanceRef.once('value', (snapshot) => {
+                    let currentBalance = snapshot.val() || 0;
+                    userBalanceRef.set(currentBalance + 250);
+                    tg.showAlert("🎉 +250 $TECN credited for watching the Telegram Ad!");
+                });
+            }).catch((result) => {
+                // Error or user skipped/closed the ad early
+                tg.showAlert("⚠️ Ad skipped or failed to load. Please try again to claim your rewards.");
+            });
+        }
+
+        function completeTask(id, link, reward) {
+            window.open(link, '_blank');
+            setTimeout(() => {
+                const userBalanceRef = database.ref(`users/${userId}/balance`);
+                userBalanceRef.once('value', (snapshot) => {
+                    let currentBalance = snapshot.val() || 0;
+                    userBalanceRef.set(currentBalance + reward);
+                    alert(`🎉 Claimed +${reward} $TECN!`);
+                });
+            }, 2000);
+        }
+
+        function renderWalletTab(savedAddress) {
+            const walletBox = document.getElementById('wallet-interface-box');
+            if (savedAddress) {
+                walletBox.innerHTML = `
+                    <p style="color: var(--neon-glow); font-weight: bold; font-size: 16px; margin-bottom: 10px;">✓ Wallet Registered Successfully</p>
+                    <input type="text" value="${savedAddress}" readonly class="copy-input" style="border-color: var(--neon-glow);">
+                    <p style="color: var(--text-muted); font-size: 12px;">Your address is securely logged on the database queue.</p>
+                `;
+            } else if (serverWalletStatus === 'open') {
+                walletBox.innerHTML = `
+                    <p style="color: #fff; margin-bottom: 15px; font-weight:600;">Withdrawal Window is OPEN! 🎉</p>
+                    <input type="text" id="user-wallet-input" placeholder="Enter your BEP-20 / TON Wallet Address" class="copy-input" style="background:#000;">
+                    <button class="task-btn" style="width: 100%; background: var(--neon-glow); color: #000; font-weight:bold;" onclick="submitWalletAddress()">Submit Address</button>
+                `;
+            } else {
+                walletBox.innerHTML = `
+                    <p style="color: #ff4757; font-weight: bold; margin-bottom: 10px;">🔒 Withdrawals are Currently Closed</p>
+                    <p style="color: var(--text-muted); font-size: 13px;">The withdrawal interface will be activated for exactly 1 week during distribution phases.</p>
+                `;
+            }
+        }
+
+        function submitWalletAddress() {
+            const addressInput = document.getElementById('user-wallet-input').value.trim();
+            if(!addressInput || addressInput.length < 10) {
+                alert("Please enter a valid crypto wallet address!");
+                return;
+            }
+            if(confirm("Confirm wallet submission? This action cannot be reverted.")) {
+                database.ref(`users/${userId}/wallet_address`).set(addressInput);
+            }
+        }
+
+        function switchTab(screenId, element) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active-screen'));
+            document.getElementById(screenId).classList.add('active-screen');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        function copyRef() {
+            const copyText = document.getElementById("ref-link");
+            copyText.select();
+            document.execCommand("copy");
+            alert("Referral link copied!");
+        }
+    </script>
+</body>
+</html>

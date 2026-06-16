@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>TrustEarn Admin Panel</title>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    
+    <style>
+        body { background: #0b1216; color: white; font-family: sans-serif; padding: 20px; }
+        .box { background: #111a24; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #1c2d3d; }
+        input { width: 100%; padding: 10px; margin: 5px 0; background: #0b1216; border: 1px solid #1c2d3d; color: white; border-radius: 5px; }
+        button { padding: 10px 20px; background: #00ffcc; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+    </style>
+</head>
+<body>
+
+    <div id="login-section" class="box">
+        <h2>Admin Login</h2>
+        <input type="email" id="email" placeholder="Email">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+    </div>
+
+    <div id="admin-panel" class="box" style="display: none;">
+        <h1>Admin Control Panel</h1>
+        
+        <h3>Add New Task</h3>
+        <input id="t-title" placeholder="Task Title">
+        <input id="t-reward" placeholder="Reward ($TECN)">
+        <input id="t-link" placeholder="Task URL">
+        <button onclick="addTask()">Add Task</button>
+
+        <h3>System Settings</h3>
+        <input id="a-notice" placeholder="Live Notification Text">
+        <button onclick="updateNotice()">Update Notice</button>
+        <br><br>
+        <button onclick="toggleWithdraw('open')" style="background: green;">Open Withdrawal</button>
+        <button onclick="toggleWithdraw('closed')" style="background: red;">Close Withdrawal</button>
+    </div>
+
+    <script>
+        // আপনার প্রোজেক্টের একই কনফিগ এখানে বসান
+        const firebaseConfig = {
+            apiKey: "AIzaSyBGTffQC-nW3_z8vU1nW7wwIye58d-ICgs",
+            authDomain: "trustearn-network.firebaseapp.com",
+            projectId: "trustearn-network",
+            storageBucket: "trustearn-network.firebasestorage.app",
+            messagingSenderId: "653539435828",
+            appId: "1:653539435828:web:efd2e9fd0a1753c376f161"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        function login() {
+            const email = document.getElementById('email').value;
+            const pass = document.getElementById('password').value;
+            firebase.auth().signInWithEmailAndPassword(email, pass)
+                .then(() => {
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('admin-panel').style.display = 'block';
+                }).catch(err => alert("Error: " + err.message));
+        }
+
+        function addTask() {
+            const title = document.getElementById('t-title').value;
+            const reward = document.getElementById('t-reward').value;
+            const link = document.getElementById('t-link').value;
+            db.ref('tasks').push({ title, reward: Number(reward), link, status: 'active' });
+            alert("Task added successfully!");
+        }
+
+        function updateNotice() {
+            const notice = document.getElementById('a-notice').value;
+            db.ref('system_settings/notice').set(notice);
+            alert("Notice updated!");
+        }
+
+        function toggleWithdraw(status) {
+            db.ref('system_settings/wallet_status').set(status);
+            alert("Withdrawal is now " + status);
+        }
+    </script>
+</body>
+</html>
