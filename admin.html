@@ -11,7 +11,7 @@
         body { background: #0b1216; color: white; font-family: sans-serif; padding: 20px; }
         .box { background: #111a24; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #1c2d3d; }
         input { width: 100%; padding: 10px; margin: 5px 0; background: #0b1216; border: 1px solid #1c2d3d; color: white; border-radius: 5px; }
-        button { padding: 10px 20px; background: #00ffcc; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+        button { padding: 10px 20px; background: #00ffcc; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 5px; color: #000; }
     </style>
 </head>
 <body>
@@ -28,7 +28,7 @@
         
         <h3>Add New Task</h3>
         <input id="t-title" placeholder="Task Title">
-        <input id="t-reward" placeholder="Reward ($TECN)">
+        <input id="t-reward" type="number" placeholder="Reward ($TECN)">
         <input id="t-link" placeholder="Task URL">
         <button onclick="addTask()">Add Task</button>
 
@@ -36,15 +36,19 @@
         <input id="a-notice" placeholder="Live Notification Text">
         <button onclick="updateNotice()">Update Notice</button>
         <br><br>
-        <button onclick="toggleWithdraw('open')" style="background: green;">Open Withdrawal</button>
-        <button onclick="toggleWithdraw('closed')" style="background: red;">Close Withdrawal</button>
+        <input id="a-fund" type="number" placeholder="Total Fund Collected Amount">
+        <button onclick="updateFund()">Update Total Fund</button>
+        <br><br>
+        <button onclick="toggleWithdraw('open')" style="background: green; color: white;">Open Withdrawal</button>
+        <button onclick="toggleWithdraw('closed')" style="background: red; color: white;">Close Withdrawal</button>
     </div>
 
     <script>
-        // আপনার প্রোজেক্টের একই কনফিগ এখানে বসান
+        // Firebase Configuration (databaseURL যুক্ত করা হয়েছে)
         const firebaseConfig = {
             apiKey: "AIzaSyBGTffQC-nW3_z8vU1nW7wwIye58d-ICgs",
             authDomain: "trustearn-network.firebaseapp.com",
+            databaseURL: "https://trustearn-network-default-rtdb.asia-southeast1.firebasedatabase.app",
             projectId: "trustearn-network",
             storageBucket: "trustearn-network.firebasestorage.app",
             messagingSenderId: "653539435828",
@@ -60,26 +64,61 @@
                 .then(() => {
                     document.getElementById('login-section').style.display = 'none';
                     document.getElementById('admin-panel').style.display = 'block';
-                }).catch(err => alert("Error: " + err.message));
+                }).catch(err => alert("Login Error: " + err.message));
         }
 
         function addTask() {
             const title = document.getElementById('t-title').value;
             const reward = document.getElementById('t-reward').value;
             const link = document.getElementById('t-link').value;
-            db.ref('tasks').push({ title, reward: Number(reward), link, status: 'active' });
-            alert("Task added successfully!");
+            
+            if(!title || !reward || !link) {
+                alert("Please fill all task details!");
+                return;
+            }
+
+            db.ref('tasks').push({ 
+                title: title, 
+                reward: Number(reward), 
+                link: link, 
+                status: 'active' 
+            }).then(() => {
+                alert("✅ Task added successfully to database!");
+                document.getElementById('t-title').value = "";
+                document.getElementById('t-reward').value = "";
+                document.getElementById('t-link').value = "";
+            }).catch(err => {
+                alert("❌ Database Write Error: " + err.message);
+            });
         }
 
         function updateNotice() {
             const notice = document.getElementById('a-notice').value;
-            db.ref('system_settings/notice').set(notice);
-            alert("Notice updated!");
+            db.ref('system_settings/notice').set(notice).then(() => {
+                alert("✅ Notification Notice updated!");
+                document.getElementById('a-notice').value = "";
+            }).catch(err => {
+                alert("❌ Error: " + err.message);
+            });
+        }
+
+        function updateFund() {
+            const fund = document.getElementById('a-fund').value;
+            if(!fund) { alert("Enter fund value"); return; }
+            db.ref('system_settings/total_fund').set(Number(fund)).then(() => {
+                alert("✅ Total Fund updated!");
+                document.getElementById('a-fund').value = "";
+            }).catch(err => {
+                alert("❌ Error: " + err.message);
+            });
         }
 
         function toggleWithdraw(status) {
-            db.ref('system_settings/wallet_status').set(status);
-            alert("Withdrawal is now " + status);
+            db.ref('system_settings/wallet_status').set(status).then(() => {
+                alert("✅ Withdrawal status updated to: " + status);
+            }).catch(err => {
+                alert("❌ Error: " + err.message);
+            });
         }
     </script>
 </body>
