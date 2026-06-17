@@ -167,7 +167,7 @@
         document.getElementById('user-name').innerText = `Hello, ${userName} 👋`;
         document.getElementById('ref-link').value = `https://t.me/trustearn_bot?start=${userId}`;
 
-        // Firebase Configuration (databaseURL যুক্ত করা হয়েছে)
+        // Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyBGTffQC-nW3_z8vU1nW7wwIye58d-ICgs",
             authDomain: "trustearn-network.firebaseapp.com",
@@ -180,7 +180,8 @@
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
 
-        const AdController = window.Adsgram.init({ blockId: "3405" }); 
+        // আপনার আসল Adsgram টোকেন এখানে যুক্ত করা হয়েছে
+        const AdController = window.Adsgram.init({ blockId: "38b2a534fba94b6d86568f69dd5a8d55" }); 
 
         // Sync Balance
         database.ref('users/' + userId).on('value', (snapshot) => {
